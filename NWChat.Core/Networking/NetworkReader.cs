@@ -121,6 +121,10 @@ namespace NWChat.Core.Networking
 
         private static bool TryReadLine(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> line)
         {
+            /* Without SequenceReader */
+
+            /*
+            
             // Look for a EOL in the buffer.
             SequencePosition? position = buffer.PositionOf((byte)'\n');
 
@@ -133,7 +137,27 @@ namespace NWChat.Core.Networking
             // Skip the line + the \n.
             line = buffer.Slice(0, position.Value);
             buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+            
             return true;
+            
+            */            
+
+            /* With SequenceReader */
+            
+            var reader = new SequenceReader<byte>(buffer);
+
+            if (reader.TryReadTo(sequence: out var message, delimiter: (byte)'\n', advancePastDelimiter: true))
+            {
+                line = message;
+
+                buffer = buffer.Slice(buffer.GetPosition(offset: 0, origin: reader.Position));
+
+                return true;
+            }
+
+            line = message;
+
+            return false;
         }
 
         public void Dispose()
